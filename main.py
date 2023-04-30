@@ -11,12 +11,15 @@ The dashboard will have two pages:
 compare the teams
 """
 import os
-import dash
-from dash import dcc, html, dash_table
+from typing import List, Union
 import pandas as pd
-from dash.dependencies import Output, Input
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+import dash
+from dash import dcc, html, dash_table
+from dash.dependencies import Output, Input
+
+
 
 PLAYERS = '/players'
 TEAMS = '/teams'
@@ -87,11 +90,11 @@ dict_teams = (dict(map(lambda x: (x[1], x[0].strip()),
                        list(map(lambda x: x.replace(')', '').split('('),
                                 filter(lambda x: x!= '', map(lambda x: x.strip(),
                                                              TEAMS_GLOSSARY.split("•"))))))))
-df_teams = pd.DataFrame.from_dict(dict_teams,
+DF_TEAMS = pd.DataFrame.from_dict(dict_teams,
                                   orient='index',
                                   columns=['Team name']).reset_index(
                                                             names='3-letter team abbreviation')
-df_variables = pd.DataFrame.from_dict(glossary,
+DF_VARIABLES = pd.DataFrame.from_dict(glossary,
                                       orient='index',
                                       columns=['Variable description']).reset_index(
                                                                             names='Variable name')
@@ -167,16 +170,16 @@ index_page = html.Div([
                          style_data=STYLE_DATA),
     html.H2('References'),
     html.A(html.H3('Teams glossary'), id='teams_glossary'),
-    dash_table.DataTable(data=df_teams.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_teams.columns],
+    dash_table.DataTable(data=DF_TEAMS.to_dict('records'),
+                         columns=[{"name": i, "id": i} for i in DF_TEAMS.columns],
                          fixed_rows={'headers': True, 'data': 0},
                          id='tbl_teams',
                          style_table={'width': '500px'},
                          style_header=STYLE_HEADER,
                          style_data=STYLE_DATA),
     html.A(html.H3('Variables'), id="variables"),
-    dash_table.DataTable(data=df_variables.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_variables.columns],
+    dash_table.DataTable(data=DF_VARIABLES.to_dict('records'),
+                         columns=[{"name": i, "id": i} for i in DF_VARIABLES.columns],
                          fixed_rows={'headers': True, 'data': 0},
                          id='tbl_variables',
                          style_table={'width': '700px'},
@@ -248,7 +251,7 @@ layout_teams = html.Div([
                Output(component_id='graph_container', component_property='style')],
               [Input(component_id='statistics_dropdown', component_property='value'),
                Input(component_id='slider_teams', component_property='value')])
-def update_teams(statistics, position):
+def update_teams(statistics: Union[List[str], None], position: Union[int, None]):
     """_summary_
 
     Args:
@@ -274,7 +277,8 @@ def update_teams(statistics, position):
     n_graphs = len(statistics)
     n_cols = min(n_graphs, 3)
     n_rows = (n_graphs - 1) // 3 + 1
-    fig = make_subplots(cols=n_cols, rows=n_rows)
+    fig = make_subplots(cols=n_cols, rows=n_rows, 
+                        subplot_titles=[glossary[statistic] for statistic in statistics])
     for index, statistic in enumerate(statistics):
         df_top5 = df1.sort_values(by=statistic, ascending=False).head(5).sort_values(by=statistic)
         title = glossary[statistic]
@@ -282,7 +286,7 @@ def update_teams(statistics, position):
             title += ' (position = ' + positions[positions_played[position]] + ')'
         trace = go.Bar(y=df_top5.index, x=df_top5[statistic], name=title, orientation='h')
         fig.add_trace(col=(index%3)+1, row=(index//3)+1, trace=trace)
-    fig.update_layout(height=n_rows * 450, template='plotly_dark')
+    fig.update_layout(height=n_rows * 450, template='plotly_dark', showlegend=False)
     return fig, {'display':'block'}
 
 @app.callback(dash.dependencies.Output('page_content', 'children'),
