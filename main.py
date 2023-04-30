@@ -11,7 +11,7 @@ The dashboard will have two pages:
 compare the teams
 """
 import os
-from typing import List, Union
+from typing import List, Union, Tuple, Dict
 import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -199,14 +199,14 @@ layout_players = html.Div([
 
 @app.callback(Output(component_id='players_table', component_property='children'),
             [Input(component_id='player_dropdown', component_property='value')])
-def update_players(value):
-    """_summary_
+def update_players(value: str) -> Union[dash_table.DataTable, None]:
+    """Affiche le tableau des joueurs en fonction de la valeur du dropdown
 
     Args:
-        value (_type_): _description_
+        value (str): valeur choisie dans le dropdown
 
     Returns:
-        _type_: _description_
+        dash_table.DataTable: Tableau des joueurs
     """
     if value == 'rookies':
         df_players = df[df['age'] < 24]
@@ -251,15 +251,18 @@ layout_teams = html.Div([
                Output(component_id='graph_container', component_property='style')],
               [Input(component_id='statistics_dropdown', component_property='value'),
                Input(component_id='slider_teams', component_property='value')])
-def update_teams(statistics: Union[List[str], None], position: Union[int, None]):
-    """_summary_
+def update_teams(statistics: Union[List[str], None], position: Union[int, None]) \
+    -> Tuple[go.Figure, Dict[str, str]]:
+    """Affiche le graphique de comparaison des équipes, en fonction des statistiques 
+    choisies et de la position
 
     Args:
-        statistics (_type_): _description_
-        position (_type_): _description_
+        statistics (List[str]): une liste de statistiques à comparer
+        position (int): indice de la position à comparer, dans le Slider
 
     Returns:
-        _type_: _description_
+        go.Figure, Dict[str, str]: Figure qui remplace le graphique vide, et style qui
+        permet d'afficher le graphique ou de le cacher
     """
     if position is None:
         position = 0  # par défaut, on ne filtre pas par position
@@ -291,14 +294,14 @@ def update_teams(statistics: Union[List[str], None], position: Union[int, None])
 
 @app.callback(dash.dependencies.Output('page_content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
-def display_page(pathname):
-    """_summary_
+def display_page(pathname: str) -> html.Div:
+    """Gestion du multi-pages
 
     Args:
-        pathname (_type_): _description_
+        pathname (str): le chemin qui vient d'être appelé
 
     Returns:
-        _type_: _description_
+        html.Div: la partie du layout à mettre à jour
     """
     if pathname == PLAYERS:
         return layout_players
