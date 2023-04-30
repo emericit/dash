@@ -1,0 +1,12 @@
+services:
+  dash:
+    image: dash-datascientest:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app
+    environment:
+      - DASH_PORT=8080

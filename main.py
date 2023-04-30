@@ -20,6 +20,8 @@ import plotly.graph_objects as go
 
 PLAYERS = '/players'
 TEAMS = '/teams'
+STYLE_HEADER={'backgroundColor': 'rgb(30, 30, 30)', 'color': 'white'}
+STYLE_DATA={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white'}
 
 glossary = {"player"        : "Name of the player",
             "pos"           : "Position played",
@@ -51,7 +53,7 @@ positions = {'C': 'Center',
              'SG': 'Shooting Guard',
              'ALL': 'All positions'}
 
-teams = """• Atlanta Hawks (ATL)
+TEAMS_GLOSSARY = """• Atlanta Hawks (ATL)
 • Boston Celtics (BOS)
 • Brooklyn Nets (BRK)
 • Charlotte Hornets (CHA)
@@ -81,12 +83,18 @@ teams = """• Atlanta Hawks (ATL)
 • Sacramento Kings (SAC)
 • San Antonio Spurs (SAS)
 • Utah Jazz (UTA)"""
-dict_teams = (dict(map(lambda x: (x[1], x[0].strip()), 
-                       list(map(lambda x: x.replace(')', '').split('('), 
-                                filter(lambda x: x!= '', map(lambda x: x.strip(), 
-                                                             teams.split("•"))))))))
-df_teams = pd.DataFrame.from_dict(dict_teams, orient='index', columns=['Team name']).reset_index(names='3-letter team abbreviation')
-df_variables = pd.DataFrame.from_dict(glossary, orient='index', columns=['Variable description']).reset_index(names='Variable name')
+dict_teams = (dict(map(lambda x: (x[1], x[0].strip()),
+                       list(map(lambda x: x.replace(')', '').split('('),
+                                filter(lambda x: x!= '', map(lambda x: x.strip(),
+                                                             TEAMS_GLOSSARY.split("•"))))))))
+df_teams = pd.DataFrame.from_dict(dict_teams,
+                                  orient='index',
+                                  columns=['Team name']).reset_index(
+                                                            names='3-letter team abbreviation')
+df_variables = pd.DataFrame.from_dict(glossary,
+                                      orient='index',
+                                      columns=['Variable description']).reset_index(
+                                                                            names='Variable name')
 df = pd.read_csv('nba_2013.csv').query("bref_team_id != 'TOT' and pos != 'G'")
 numerical_variables = list(df.select_dtypes(exclude=['object']).columns)
 df_head = df.head()
@@ -114,21 +122,21 @@ app.layout = html.Div([
     html.Div([html.Img(src="https://cdn.nba.com/logos/leagues/logo-nba.svg", alt="NBA", id="nba"),
               html.Button(dcc.Link('Home', href='/'), id="home_button"),
               html.Button(dcc.Link('Player Comparison', href=PLAYERS), id="player_button"),
-              html.Button(dcc.Link('Team Comparison', href=TEAMS), id="team_button")], 
+              html.Button(dcc.Link('Team Comparison', href=TEAMS), id="team_button")],
               id='navigation_bar'),
     html.Div(id='page_content')
 ])
 
 index_page = html.Div([
     html.H1('NBA 2013 dataset'),
-    html.P(['This is a dashboard to compare the players and the ', 
+    html.P(['This is a dashboard to compare the players and the ',
             html.A('teams', href='#teams_glossary'), ' of the NBA 2013 season.']),
     html.H2('Dataset source'),
     html.P(["""We were given a dataset about the players of the NBA 2013 season.
             Given the names of the variables, and the data, we guessed what they """,
             html.A('mean', href='#variables'),
-            """ with the help of the site """, 
-        html.A('basketball-reference', 
+            """ with the help of the site """,
+        html.A('basketball-reference',
                href='https://www.basketball-reference.com/about/glossary.html')]),
     html.P(["""With this data, you can compare the players and the teams.
             The dashboard has two pages: """,
@@ -141,63 +149,39 @@ index_page = html.Div([
     html.H2('Dataset description'),
     html.H3('Dataframe head'),
     dash_table.DataTable(data=df_head.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_head.columns], 
+                         columns=[{"name": i, "id": i} for i in df_head.columns],
                          fixed_rows={'headers': True, 'data': 0},
-                         id='tbl_head', 
+                         id='tbl_head',
                          style_table={'width': '1200px'},
                          tooltip_header=glossary,
-                         style_header={
-                            'backgroundColor': 'rgb(30, 30, 30)',
-                            'color': 'white'
-                        },
-                        style_data={
-                            'backgroundColor': 'rgb(50, 50, 50)',
-                            'color': 'white'
-                        }),
+                         style_header=STYLE_HEADER,
+                        style_data=STYLE_DATA),
     html.H3('Dataframe summary'),
     dash_table.DataTable(data=df_desc.round(2).to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_desc.columns], 
+                         columns=[{"name": i, "id": i} for i in df_desc.columns],
                          id='tbl_desc',
                          style_table={'width': '1200px'},
                          fixed_rows={'headers': True, 'data': 0},
                          tooltip_header=glossary,
-                         style_header={
-                            'backgroundColor': 'rgb(30, 30, 30)',
-                            'color': 'white'
-                        },
-                        style_data={
-                            'backgroundColor': 'rgb(50, 50, 50)',
-                            'color': 'white'
-                        }),
+                         style_header=STYLE_HEADER,
+                         style_data=STYLE_DATA),
     html.H2('References'),
     html.A(html.H3('Teams glossary'), id='teams_glossary'),
     dash_table.DataTable(data=df_teams.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_teams.columns], 
+                         columns=[{"name": i, "id": i} for i in df_teams.columns],
                          fixed_rows={'headers': True, 'data': 0},
                          id='tbl_teams',
                          style_table={'width': '500px'},
-                         style_header={
-                            'backgroundColor': 'rgb(30, 30, 30)',
-                            'color': 'white'
-                        },
-                        style_data={
-                            'backgroundColor': 'rgb(50, 50, 50)',
-                            'color': 'white'
-                        }),
+                         style_header=STYLE_HEADER,
+                         style_data=STYLE_DATA),
     html.A(html.H3('Variables'), id="variables"),
     dash_table.DataTable(data=df_variables.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_variables.columns], 
+                         columns=[{"name": i, "id": i} for i in df_variables.columns],
                          fixed_rows={'headers': True, 'data': 0},
                          id='tbl_variables',
                          style_table={'width': '700px'},
-                         style_header={
-                            'backgroundColor': 'rgb(30, 30, 30)',
-                            'color': 'white'
-                        },
-                        style_data={
-                            'backgroundColor': 'rgb(50, 50, 50)',
-                            'color': 'white'
-                        }),
+                         style_header=STYLE_HEADER,
+                         style_data=STYLE_DATA),
     ]
 )
 
@@ -213,6 +197,14 @@ layout_players = html.Div([
 @app.callback(Output(component_id='players_table', component_property='children'),
             [Input(component_id='player_dropdown', component_property='value')])
 def update_players(value):
+    """_summary_
+
+    Args:
+        value (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     if value == 'rookies':
         df_players = df[df['age'] < 24]
     elif value == 'seniors':
@@ -220,7 +212,7 @@ def update_players(value):
     else:
         return None
     return dash_table.DataTable(data=df_players.to_dict('records'),
-                         columns=[{"name": i, "id": i} for i in df_players.columns], 
+                         columns=[{"name": i, "id": i} for i in df_players.columns],
                          fixed_rows={'headers': True, 'data': 0},
                          id='tbl_players', tooltip_header=glossary,
                          style_header={
@@ -237,7 +229,7 @@ layout_teams = html.Div([
     html.H1('Team Comparison'),
     html.H2('Choose the statistic to compute'),
     html.Div(dcc.Dropdown(id='statistics_dropdown',
-                          options=[{'label': v, 'value': k} for k, v in glossary.items() 
+                          options=[{'label': v, 'value': k} for k, v in glossary.items()
                                    if k in numerical_variables],
                           multi=True)),
     html.H2('If needed, split the analysis by position played'),
@@ -248,7 +240,8 @@ layout_teams = html.Div([
                       value=0,
                       step=None)),
     html.Br(),
-    html.Div(dcc.Graph(id='teams_graph', figure=go.Figure()), id="graph_container", style={"display": "none"}),
+    html.Div(dcc.Graph(id='teams_graph', figure=go.Figure()), id="graph_container",
+             style={"display": "none"}),
 ])
 
 @app.callback([Output(component_id='teams_graph', component_property='figure'),
@@ -256,6 +249,15 @@ layout_teams = html.Div([
               [Input(component_id='statistics_dropdown', component_property='value'),
                Input(component_id='slider_teams', component_property='value')])
 def update_teams(statistics, position):
+    """_summary_
+
+    Args:
+        statistics (_type_): _description_
+        position (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     if position is None:
         position = 0  # par défaut, on ne filtre pas par position
     if position not in range(len(positions_played)):
@@ -286,6 +288,14 @@ def update_teams(statistics, position):
 @app.callback(dash.dependencies.Output('page_content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
 def display_page(pathname):
+    """_summary_
+
+    Args:
+        pathname (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     if pathname == PLAYERS:
         return layout_players
     elif pathname == TEAMS:
@@ -295,4 +305,7 @@ def display_page(pathname):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host="0.0.0.0")
+    # Get port and debug mode from environment variables
+    port = os.environ.get('DASH_PORT', 8080)
+    debug = os.environ.get('DASH_DEBUG', "False") != "False"
+    app.run_server(debug=debug, host="0.0.0.0", port=port)
