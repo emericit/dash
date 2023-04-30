@@ -287,9 +287,15 @@ def update_teams(statistics: Union[List[str], None], position: Union[int, None])
         title = glossary[statistic]
         if position != 0:
             title += ' (position = ' + positions[positions_played[position]] + ')'
-        trace = go.Bar(y=df_top5.index, x=df_top5[statistic], name=title, orientation='h')
+        trace = go.Bar(y=df_top5.index, x=df_top5[statistic], name=title, orientation='h',
+                       text = [dict_teams[team] for team in df_top5.index],
+                       hovertemplate ='%{text}: %{x:.2f}'
+                       )
         fig.add_trace(col=(index%3)+1, row=(index//3)+1, trace=trace)
-    fig.update_layout(height=n_rows * 450, template='plotly_dark', showlegend=False)
+    fig.update_layout(height=n_rows * 450,
+                      hovermode='y',
+                      template='plotly_dark',
+                      showlegend=False)
     return fig, {'display':'block'}
 
 @app.callback(dash.dependencies.Output('page_content', 'children'),
