@@ -90,7 +90,7 @@ df_variables = pd.DataFrame.from_dict(glossary, orient='index', columns=['Variab
 df = pd.read_csv('nba_2013.csv').query("bref_team_id != 'TOT' and pos != 'G'")
 numerical_variables = list(df.select_dtypes(exclude=['object']).columns)
 df_head = df.head()
-df_desc = df.describe(include="all").reset_index(names='statistics')
+df_desc = df.describe(include="all").reset_index(names='stat.')
 # in the first stage, we explored a bit the data. This part should not remain in the final version
 if os.environ.get('DEBUG') is not None:
     print(df.head())
@@ -142,29 +142,62 @@ index_page = html.Div([
     html.H3('Dataframe head'),
     dash_table.DataTable(data=df_head.to_dict('records'),
                          columns=[{"name": i, "id": i} for i in df_head.columns], 
-                         fixed_columns={'headers': True, 'data': 1},
                          fixed_rows={'headers': True, 'data': 0},
-                         id='tbl_head', tooltip_header=glossary),
+                         id='tbl_head', 
+                         style_table={'width': '1200px'},
+                         tooltip_header=glossary,
+                         style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        },
+                        style_data={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white'
+                        }),
     html.H3('Dataframe summary'),
     dash_table.DataTable(data=df_desc.round(2).to_dict('records'),
                          columns=[{"name": i, "id": i} for i in df_desc.columns], 
                          id='tbl_desc',
-                         fixed_columns={'headers': True, 'data': 1},
+                         style_table={'width': '1200px'},
                          fixed_rows={'headers': True, 'data': 0},
-                         tooltip_header=glossary),
+                         tooltip_header=glossary,
+                         style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        },
+                        style_data={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white'
+                        }),
     html.H2('References'),
     html.A(html.H3('Teams glossary'), id='teams_glossary'),
     dash_table.DataTable(data=df_teams.to_dict('records'),
                          columns=[{"name": i, "id": i} for i in df_teams.columns], 
-                         fixed_columns={'headers': True, 'data': 1},
                          fixed_rows={'headers': True, 'data': 0},
-                         id='tbl_teams'),
+                         id='tbl_teams',
+                         style_table={'width': '500px'},
+                         style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        },
+                        style_data={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white'
+                        }),
     html.A(html.H3('Variables'), id="variables"),
     dash_table.DataTable(data=df_variables.to_dict('records'),
                          columns=[{"name": i, "id": i} for i in df_variables.columns], 
-                         fixed_columns={'headers': True, 'data': 1},
                          fixed_rows={'headers': True, 'data': 0},
-                         id='tbl_variables'),
+                         id='tbl_variables',
+                         style_table={'width': '700px'},
+                         style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        },
+                        style_data={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white'
+                        }),
     ]
 )
 
@@ -188,9 +221,17 @@ def update_players(value):
         return None
     return dash_table.DataTable(data=df_players.to_dict('records'),
                          columns=[{"name": i, "id": i} for i in df_players.columns], 
-                         fixed_columns={'headers': True, 'data': 1},
                          fixed_rows={'headers': True, 'data': 0},
-                         id='tbl_players', tooltip_header=glossary)
+                         id='tbl_players', tooltip_header=glossary,
+                         style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        },
+                        style_table={'width': '1200px'},
+                        style_data={
+                            'backgroundColor': 'rgb(50, 50, 50)',
+                            'color': 'white'
+                        })
 
 layout_teams = html.Div([
     html.H1('Team Comparison'),
@@ -239,7 +280,7 @@ def update_teams(statistics, position):
             title += ' (position = ' + positions[positions_played[position]] + ')'
         trace = go.Bar(y=df_top5.index, x=df_top5[statistic], name=title, orientation='h')
         fig.add_trace(col=(index%3)+1, row=(index//3)+1, trace=trace)
-    fig['layout'].update(height=n_rows * 450)
+    fig.update_layout(height=n_rows * 450, template='plotly_dark')
     return fig, {'display':'block'}
 
 @app.callback(dash.dependencies.Output('page_content', 'children'),
