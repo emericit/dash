@@ -104,3 +104,12 @@ body {
   .dash-dropdown .VirtualizedSelectFocusedOption {
     background-color: rgba(55, 90, 127, 0.1) !important;
   }
+
+  .Select.has-value.Select .Select-value .Select-value-label {
+    color: #fff
+  }
+
+  #player_dropdown, #statistics_dropdown
+  {
+    color: #fff
+  }
